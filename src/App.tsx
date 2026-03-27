@@ -1663,237 +1663,91 @@ function TabTaoDeTuDong({ data, countQuestions }: { data: any[], countQuestions:
                 </div>
                 <span className="bg-white/20 text-white font-black text-2xl px-4 py-2 rounded-2xl">{nlcQuestions.length}</span>
               </div>
-              <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* ═══ PHẦN I: TRẮC NGHIỆM NHIỀU PHƯƠNG ÁN ═══════════════════ */}
+          {nlcQuestions.length > 0 && (
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="bg-emerald-600 px-8 py-4 flex items-center justify-between">
+                <div>
+                  <h3 className="text-white font-black text-base">PHẦN I. TRẮC NGHIỆM NHIỀU PHƯƠNG ÁN</h3>
+                  <p className="text-emerald-100 text-xs mt-0.5">Câu 1 – {nlcQuestions.length} · Mỗi câu đúng 0,25 điểm · Chọn đáp án đúng nhất</p>
+                </div>
+                <span className="bg-white/20 text-white font-black text-xl px-4 py-2 rounded-2xl">{nlcQuestions.length}</span>
+              </div>
+
+              <div className="p-6 space-y-4">
                 {nlcQuestions.map((q, i) => {
-                  // Làm sạch nội dung — xoá prefix [...] nếu có
-                  const noiDungClean = q.noiDungCauHoi
-                    .replace(/^\[.*?\]\s*–?\s*/, '')
-                    .trim();
+                  const cauSo = i + 1;
+                  // Tách đề + 4 phương án A B C D
+                  const raw = q.noiDungCauHoi.replace(/^\[.*?\]\s*–?\s*/, '').trim();
+                  const optRegex = /\n?([A-D])\.\s*/g;
+                  const splitParts = raw.split(/\n?[A-D]\.\s*/);
+                  const deDan = splitParts[0].trim();
+                  // Lấy label A B C D và nội dung mỗi option
+                  const optMatches = [...raw.matchAll(/([A-D])\.\s*([^\n]*)/g)];
+                  const options = optMatches.length > 0
+                    ? optMatches.map(m => ({ label: m[1], text: m[2].trim() }))
+                    : ['A', 'B', 'C', 'D'].map((lbl, k) => ({ label: lbl, text: splitParts[k + 1]?.trim() || `Phương án ${lbl}` }));
 
-                  // Mức độ badge style
-                  const mdStyle: Record<string, string> = {
-                    'Nhận biết':    'bg-sky-100 text-sky-700',
-                    'Thông hiểu':   'bg-indigo-100 text-indigo-700',
-                    'Vận dụng':     'bg-orange-100 text-orange-700',
-                    'Vận dụng cao': 'bg-rose-100 text-rose-700',
-                  };
-                  const badgeStyle = mdStyle[q.mucDo] || 'bg-slate-100 text-slate-600';
-
-                  // Keyword tìm nguồn = tên chủ đề
-                  const keyword = encodeURIComponent(q.noiDung || q.chuong || '');
-                  const srcTHVHL = `https://thuvienhoclieu.com/?s=${keyword}`;
-                  const srcToanmath = `https://toanmath.com/?s=${keyword}`;
-                  const srcGoogle = `https://www.google.com/search?q=${encodeURIComponent((q.noiDung || '') + ' trắc nghiệm toán 12')}`;
+                  const keyword = encodeURIComponent(q.noiDung || '');
 
                   return (
-                    <div key={q.id} className="border-2 border-emerald-200 rounded-2xl overflow-hidden bg-emerald-50/20">
-                      {/* Header */}
-                      <div className="flex items-center justify-between px-4 py-2.5 bg-emerald-500/10 border-b border-emerald-200">
+                    <div key={q.id} className="border border-slate-200 rounded-2xl overflow-hidden">
+                      {/* Mini toolbar */}
+                      <div className="flex items-center justify-between px-4 py-1.5 bg-slate-50 border-b border-slate-100">
                         <div className="flex items-center gap-2">
-                          <span className="w-8 h-8 bg-emerald-600 text-white font-black text-sm rounded-xl flex items-center justify-center flex-shrink-0">
-                            {q.soThuTu}
+                          <span className="text-[10px] font-black text-slate-400 uppercase">
+                            {q.mucDo === 'Nhận biết' ? 'NB' : q.mucDo === 'Thông hiểu' ? 'TH' : q.mucDo === 'Vận dụng cao' ? 'VDC' : 'VD'}
                           </span>
-                          <div>
-                            <div className="flex items-center gap-1.5">
-                              <span className={`text-[9px] font-black px-2 py-0.5 rounded-full uppercase ${badgeStyle}`}>{q.mucDo}</span>
-                              <span className="text-[10px] text-slate-400 italic">{q.noiDung}</span>
-                            </div>
-                          </div>
+                          <span className="text-[10px] text-slate-400 italic">{q.noiDung}</span>
                         </div>
-                        <div className="flex items-center gap-1.5 flex-shrink-0">
-                          {/* NÚT TÌM NGUỒN */}
+                        <div className="flex items-center gap-1">
                           <div className="relative group">
-                            <button
-                              className="px-2.5 py-1.5 bg-indigo-100 border border-indigo-200 rounded-lg text-[10px] font-black text-indigo-700 hover:bg-indigo-200 transition flex items-center gap-1"
-                              title="Tìm câu hỏi từ nguồn tài liệu"
-                            >
-                              🔍 Tìm nguồn
-                            </button>
-                            {/* Dropdown menu */}
-                            <div className="absolute right-0 top-full mt-1 w-52 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                              <div className="p-2 flex flex-col gap-1">
-                                <p className="text-[9px] font-black text-slate-400 uppercase px-2 py-1">Tìm: "{q.noiDung}"</p>
-                                <a
-                                  href={srcTHVHL}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-blue-50 text-xs font-bold text-blue-700 transition"
-                                >
-                                  📚 Thư viện Học liệu
-                                  <span className="ml-auto text-[9px] opacity-50">↗</span>
-                                </a>
-                                <a
-                                  href={srcToanmath}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-emerald-50 text-xs font-bold text-emerald-700 transition"
-                                >
-                                  📐 Toanmath.com
-                                  <span className="ml-auto text-[9px] opacity-50">↗</span>
-                                </a>
-                                <a
-                                  href={srcGoogle}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-slate-50 text-xs font-bold text-slate-600 transition"
-                                >
-                                  🌐 Tìm trên Google
-                                  <span className="ml-auto text-[9px] opacity-50">↗</span>
-                                </a>
-                                <hr className="border-slate-100 my-1"/>
-                                <button
-                                  onClick={() => {
-                                    setKeywordSearch(q.noiDung || '');
-                                    setShowNguon(true);
-                                    document.getElementById('nguon-tai-lieu-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                                  }}
-                                  className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-violet-50 text-xs font-bold text-violet-700 transition text-left w-full"
-                                >
-                                  📂 Nhập từ file máy tính
-                                </button>
+                            <button className="px-2 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-[9px] font-bold hover:bg-indigo-100 transition">🔍 Tìm nguồn</button>
+                            <div className="absolute right-0 top-full mt-1 w-44 bg-white border border-slate-200 rounded-xl shadow-xl z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
+                              <div className="p-1.5 flex flex-col gap-0.5">
+                                <a href={`https://thuvienhoclieu.com/?s=${keyword}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-blue-50 text-xs font-bold text-blue-700">📚 Thư viện Học liệu ↗</a>
+                                <a href={`https://toanmath.com/?s=${keyword}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-emerald-50 text-xs font-bold text-emerald-700">📐 Toanmath.com ↗</a>
+                                <a href={`https://www.google.com/search?q=${encodeURIComponent((q.noiDung||'')+' trắc nghiệm toán 12')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-slate-50 text-xs text-slate-600 font-bold">🌐 Google ↗</a>
+                                <button onClick={() => { setKeywordSearch(q.noiDung||''); setShowNguon(true); document.getElementById('nguon-tai-lieu-panel')?.scrollIntoView({behavior:'smooth',block:'start'}); }} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-violet-50 text-xs font-bold text-violet-700 text-left w-full">📂 Nhập file máy tính</button>
                               </div>
                             </div>
                           </div>
-                          {/* NÚT SỬA */}
-                          {editingId === q.id ? (
-                            <button onClick={() => setEditingId(null)} className="px-2.5 py-1.5 bg-slate-200 rounded-lg text-[10px] font-bold">✓ Xong</button>
-                          ) : (
-                            <button onClick={() => setEditingId(q.id)} className="px-2.5 py-1.5 bg-emerald-100 border border-emerald-200 rounded-lg text-[10px] font-bold text-emerald-700 hover:bg-emerald-200 transition">✏ Sửa</button>
-                          )}
+                          {editingId === q.id
+                            ? <button onClick={() => setEditingId(null)} className="px-2 py-1 bg-slate-200 rounded-lg text-[9px] font-bold">✓ Xong</button>
+                            : <button onClick={() => setEditingId(q.id)} className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded-lg text-[9px] font-bold hover:bg-emerald-200 transition">✏ Sửa</button>
+                          }
                         </div>
                       </div>
 
-                      {/* Nội dung */}
-                      <div className="px-4 py-3">
+                      {/* Nội dung câu hỏi */}
+                      <div className="px-5 py-3">
                         {editingId === q.id ? (
                           <textarea
-                            className="w-full p-3 border-2 border-emerald-300 rounded-xl text-sm font-mono bg-white outline-none focus:border-emerald-500 resize-none min-h-[80px]"
-                            value={q.noiDungCauHoi}
-                            onChange={e => handleUpdateCauHoi(q.id, 'noiDungCauHoi', e.target.value)}
-                          />
-                        ) : (
-                          <p className="text-sm text-slate-800 leading-relaxed">{noiDungClean}</p>
-                        )}
-                        {hienThiDapAn && (
-                          <div className="mt-2 flex items-center gap-2">
-                            <span className="text-[10px] text-slate-400 font-bold uppercase">Đáp án:</span>
-                            <span className="px-2.5 py-0.5 bg-emerald-600 text-white text-xs font-black rounded-lg">{q.dapAn}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* PHẦN II */}
-          {dsQuestions.length > 0 && (
-            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="bg-amber-500 px-8 py-5 flex items-center justify-between">
-                <div>
-                  <h3 className="text-white font-black text-lg">PHẦN II. TRẮC NGHIỆM ĐÚNG / SAI</h3>
-                  <p className="text-amber-100 text-xs mt-0.5">Mỗi câu có 4 mệnh đề a,b,c,d · Xác định đúng (Đ) hoặc sai (S) · Câu 13–16</p>
-                </div>
-                <span className="bg-white/20 text-white font-black text-2xl px-4 py-2 rounded-2xl">{dsQuestions.length}</span>
-              </div>
-              <div className="p-6 grid grid-cols-1 gap-5">
-                {dsQuestions.map((q, i) => {
-                  // Số câu thực tế: bắt đầu từ 13
-                  const cauSo = 12 + (i + 1); // 13, 14, 15, 16
-
-                  // Parse nội dung thành phần chính + 4 ý a/b/c/d
-                  const raw = q.noiDungCauHoi;
-                  // Tách phần dẫn (trước a)) và 4 ý
-                  const labelMap = ['a', 'b', 'c', 'd'];
-                  const mucDoYMap = ['Nhận biết', 'Thông hiểu', 'Thông hiểu', 'Vận dụng'];
-                  const mucDoColorMap = [
-                    'bg-sky-100 text-sky-700',
-                    'bg-indigo-100 text-indigo-700',
-                    'bg-indigo-100 text-indigo-700',
-                    'bg-rose-100 text-rose-700',
-                  ];
-
-                  // Regex tách: dòng bắt đầu a), b), c), d)
-                  const parts = raw.split(/\n(?=[a-d]\))/i);
-                  const danDe = parts[0]
-                    .replace(/^.*?\]\s*/,'') // xóa [Nhận biết – DS] prefix nếu có
-                    .replace(/^Cho các mệnh đề sau/i, 'Cho các mệnh đề sau') // giữ nguyên
-                    .trim();
-                  const yItems = parts.slice(1); // mảng ["a) ...", "b) ...", ...]
-
-                  // Nếu không parse được, tạo 4 ý mặc định
-                  const finalYs = labelMap.map((lbl, k) => {
-                    if (yItems[k]) return yItems[k].replace(/^[a-d]\)\s*/i, '').trim();
-                    return `[Mệnh đề ${lbl.toUpperCase()}] – ${mucDoYMap[k]}`;
-                  });
-
-                  // Đáp án: "Đ S Đ S" hoặc từng ký tự
-                  const dapAnParts = (q.dapAn || '').split(/\s+/);
-
-                  return (
-                    <div key={q.id} className="border-2 border-amber-200 rounded-2xl overflow-hidden bg-amber-50/30">
-                      {/* Header Câu */}
-                      <div className="flex items-center justify-between px-5 py-3 bg-amber-500/10 border-b border-amber-200">
-                        <div className="flex items-center gap-3">
-                          <span className="w-9 h-9 bg-amber-500 text-white font-black text-base rounded-xl flex items-center justify-center flex-shrink-0">
-                            {cauSo}
-                          </span>
-                          <div>
-                            <span className="text-[10px] font-black text-amber-700 uppercase tracking-wider">Câu {cauSo} · Đúng/Sai</span>
-                            <p className="text-xs text-slate-500 italic">{q.noiDung}</p>
-                          </div>
-                        </div>
-                        {editingId === q.id ? (
-                          <button onClick={() => setEditingId(null)} className="px-3 py-1.5 bg-slate-200 rounded-lg text-xs font-bold">✓ Xong</button>
-                        ) : (
-                          <button onClick={() => setEditingId(q.id)} className="px-3 py-1.5 bg-amber-100 border border-amber-200 rounded-lg text-xs font-bold text-amber-700 hover:bg-amber-200 transition">✏ Sửa</button>
-                        )}
-                      </div>
-
-                      {/* Phần dẫn */}
-                      <div className="px-5 pt-4 pb-2">
-                        {editingId === q.id ? (
-                          <textarea
-                            className="w-full p-3 border-2 border-amber-300 rounded-xl text-sm font-mono bg-white outline-none focus:border-amber-500 resize-none min-h-[120px]"
+                            className="w-full p-3 border-2 border-emerald-300 rounded-xl text-sm font-mono bg-white outline-none focus:border-emerald-500 resize-none min-h-[100px]"
                             value={q.noiDungCauHoi}
                             onChange={e => handleUpdateCauHoi(q.id, 'noiDungCauHoi', e.target.value)}
                           />
                         ) : (
                           <>
-                            <p className="text-sm font-semibold text-slate-800 mb-3 leading-relaxed">{danDe}</p>
-                            <div className="flex flex-col gap-2">
-                              {finalYs.map((y, k) => (
-                                <div key={k} className="flex items-start gap-3">
-                                  <div className="flex items-center gap-1.5 flex-shrink-0">
-                                    <span className="w-6 h-6 bg-amber-500 text-white font-black text-xs rounded-lg flex items-center justify-center">{labelMap[k]}</span>
-                                    <span className={`text-[9px] font-black px-1.5 py-0.5 rounded ${mucDoColorMap[k]}`}>{mucDoYMap[k].substring(0,2).toUpperCase()}</span>
+                            {/* Câu số + đề dẫn */}
+                            <p className="text-sm font-bold text-slate-900 mb-2 leading-relaxed">
+                              <span className="text-emerald-700 font-black mr-1">Câu {cauSo}.</span>
+                              {deDan}
+                            </p>
+                            {/* 4 phương án A B C D */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
+                              {options.map(opt => {
+                                const isCorrect = hienThiDapAn && q.dapAn.trim().toUpperCase() === opt.label;
+                                return (
+                                  <div key={opt.label} className={`flex items-start gap-2 px-3 py-1.5 rounded-xl text-sm transition ${isCorrect ? 'bg-emerald-100 border-2 border-emerald-400' : 'bg-slate-50 border border-slate-200'}`}>
+                                    <span className={`font-black flex-shrink-0 w-5 text-sm ${isCorrect ? 'text-emerald-700' : 'text-slate-500'}`}>{opt.label}.</span>
+                                    <span className={`leading-snug ${isCorrect ? 'text-emerald-800 font-bold' : 'text-slate-700'}`}>{opt.text}</span>
+                                    {isCorrect && <span className="ml-auto flex-shrink-0 text-emerald-600 text-xs font-black">✓</span>}
                                   </div>
-                                  <p className="text-sm text-slate-700 leading-relaxed flex-1">{y}</p>
-                                  {hienThiDapAn && (
-                                    <span className={`flex-shrink-0 px-2 py-0.5 rounded-lg font-black text-xs ${
-                                      (dapAnParts[k] || '').toUpperCase() === 'Đ' || (dapAnParts[k] || '').toUpperCase() === 'D'
-                                        ? 'bg-emerald-100 text-emerald-700'
-                                        : 'bg-rose-100 text-rose-600'
-                                    }`}>
-                                      {(dapAnParts[k] || '?').toUpperCase() === 'D' ? 'Đ' : (dapAnParts[k] || '?').toUpperCase()}
-                                    </span>
-                                  )}
-                                </div>
-                              ))}
+                                );
+                              })}
                             </div>
                           </>
-                        )}
-                      </div>
-
-                      {/* Điểm tối đa */}
-                      <div className="px-5 pb-3 pt-1 flex items-center justify-between">
-                        <p className="text-[10px] text-slate-400 italic">1 ý đúng: 0.1đ · 2 ý: 0.25đ · 3 ý: 0.5đ · 4 ý: 1đ</p>
-                        {hienThiDapAn && (
-                          <span className="text-[10px] font-black text-amber-600 bg-amber-100 px-2 py-0.5 rounded">
-                            ĐA: {dapAnParts.map((d, k) => `${labelMap[k]}=${d.toUpperCase() === 'D' ? 'Đ' : d}`).join(' | ')}
-                          </span>
                         )}
                       </div>
                     </div>
@@ -1903,86 +1757,154 @@ function TabTaoDeTuDong({ data, countQuestions }: { data: any[], countQuestions:
             </div>
           )}
 
-          {/* PHẦN III */}
-          {tlnQuestions.length > 0 && (
+          {/* ═══ PHẦN II: TRẮC NGHIỆM ĐÚNG / SAI ══════════════════════════ */}
+          {dsQuestions.length > 0 && (
             <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="bg-rose-600 px-8 py-5 flex items-center justify-between">
+              <div className="bg-amber-500 px-8 py-4 flex items-center justify-between">
                 <div>
-                  <h3 className="text-white font-black text-lg">PHẦN III. TRẢ LỜI NGẮN</h3>
-                  <p className="text-rose-100 text-xs mt-0.5">Thí sinh ghi kết quả vào ô trả lời · Câu 17–22 · Mỗi câu đúng 0,5 điểm</p>
+                  <h3 className="text-white font-black text-base">PHẦN II. TRẮC NGHIỆM ĐÚNG / SAI</h3>
+                  <p className="text-amber-100 text-xs mt-0.5">Câu 1 – {dsQuestions.length} · Mỗi câu có 4 mệnh đề a, b, c, d · Xác định Đúng (Đ) / Sai (S)</p>
                 </div>
-                <span className="bg-white/20 text-white font-black text-2xl px-4 py-2 rounded-2xl">{tlnQuestions.length}</span>
+                <span className="bg-white/20 text-white font-black text-xl px-4 py-2 rounded-2xl">{dsQuestions.length}</span>
               </div>
-              <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                {tlnQuestions.map((q, i) => {
-                  // Số câu thực tế: bắt đầu từ 17
-                  const cauSo = 16 + (i + 1); // 17, 18, 19, 20, 21, 22
 
-                  // Màu badge theo mức độ
-                  const mucDoStyleMap: Record<string, string> = {
-                    'Nhận biết':    'bg-sky-100 text-sky-700 border-sky-200',
-                    'Thông hiểu':   'bg-indigo-100 text-indigo-700 border-indigo-200',
-                    'Vận dụng':     'bg-orange-100 text-orange-700 border-orange-200',
-                    'Vận dụng cao': 'bg-rose-100 text-rose-700 border-rose-200',
-                  };
-                  const mdStyle = mucDoStyleMap[q.mucDo] || 'bg-slate-100 text-slate-600 border-slate-200';
-
-                  // Làm sạch nội dung — xoá prefix [...] nếu có
-                  const noiDungClean = q.noiDungCauHoi
-                    .replace(/^\[.*?\]\s*–?\s*/,'')
-                    .trim();
+              <div className="p-6 space-y-5">
+                {dsQuestions.map((q, i) => {
+                  const cauSo = i + 1; // Câu 1–4 trong phần này
+                  const labelMap = ['a', 'b', 'c', 'd'];
+                  const mucDoYMap = ['Nhận biết', 'Thông hiểu', 'Thông hiểu', 'Vận dụng'];
+                  const raw = q.noiDungCauHoi;
+                  const parts = raw.split(/\n(?=[a-d]\))/i);
+                  const danDe = parts[0].replace(/^\[.*?\]\s*–?\s*/, '').trim();
+                  const yItems = parts.slice(1);
+                  const finalYs = labelMap.map((_, k) => {
+                    if (yItems[k]) return yItems[k].replace(/^[a-d]\)\s*/i, '').trim();
+                    return `Mệnh đề ${labelMap[k].toUpperCase()} – [${mucDoYMap[k]}]`;
+                  });
+                  const dapAnParts = (q.dapAn || '').split(/\s+/);
 
                   return (
-                    <div key={q.id} className="border-2 border-rose-200 rounded-2xl overflow-hidden bg-rose-50/20">
-                      {/* Header */}
-                      <div className="flex items-center justify-between px-4 py-3 bg-rose-500/10 border-b border-rose-200">
-                        <div className="flex items-center gap-2.5">
-                          <span className="w-9 h-9 bg-rose-600 text-white font-black text-base rounded-xl flex items-center justify-center flex-shrink-0">
-                            {cauSo}
-                          </span>
-                          <div>
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              <span className="text-[10px] font-black text-rose-700 uppercase tracking-wider">Câu {cauSo}</span>
-                              <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${mdStyle}`}>
-                                {q.mucDo}
-                              </span>
-                            </div>
-                            <p className="text-[10px] text-slate-400 italic">{q.noiDung}</p>
-                          </div>
+                    <div key={q.id} className="border-2 border-amber-200 rounded-2xl overflow-hidden">
+                      {/* Mini toolbar */}
+                      <div className="flex items-center justify-between px-4 py-1.5 bg-amber-50 border-b border-amber-100">
+                        <span className="text-[10px] text-slate-400 italic">{q.noiDung} · Câu {12 + cauSo} (tổng)</span>
+                        <div className="flex gap-1">
+                          {editingId === q.id
+                            ? <button onClick={() => setEditingId(null)} className="px-2 py-1 bg-slate-200 rounded-lg text-[9px] font-bold">✓ Xong</button>
+                            : <button onClick={() => setEditingId(q.id)} className="px-2 py-1 bg-amber-100 text-amber-700 rounded-lg text-[9px] font-bold hover:bg-amber-200 transition">✏ Sửa</button>
+                          }
                         </div>
-                        {editingId === q.id ? (
-                          <button onClick={() => setEditingId(null)} className="px-3 py-1.5 bg-slate-200 rounded-lg text-xs font-bold flex-shrink-0">✓ Xong</button>
-                        ) : (
-                          <button onClick={() => setEditingId(q.id)} className="px-3 py-1.5 bg-rose-100 border border-rose-200 rounded-lg text-xs font-bold text-rose-700 hover:bg-rose-200 transition flex-shrink-0">✏ Sửa</button>
-                        )}
                       </div>
 
-                      {/* Nội dung câu hỏi */}
-                      <div className="px-4 pt-4 pb-3">
+                      <div className="px-5 py-4">
                         {editingId === q.id ? (
                           <textarea
-                            className="w-full p-3 border-2 border-rose-300 rounded-xl text-sm font-mono bg-white outline-none focus:border-rose-500 resize-none min-h-[80px]"
+                            className="w-full p-3 border-2 border-amber-300 rounded-xl text-sm font-mono bg-white outline-none resize-none min-h-[120px]"
                             value={q.noiDungCauHoi}
                             onChange={e => handleUpdateCauHoi(q.id, 'noiDungCauHoi', e.target.value)}
                           />
                         ) : (
-                          <p className="text-sm text-slate-800 leading-relaxed font-medium">{noiDungClean}</p>
+                          <>
+                            {/* Câu số + đề dẫn */}
+                            <p className="text-sm font-bold text-slate-900 mb-3 leading-relaxed">
+                              <span className="text-amber-700 font-black mr-1">Câu {cauSo}.</span>
+                              {danDe}
+                            </p>
+                            {/* 4 mệnh đề a b c d */}
+                            <div className="space-y-2">
+                              {finalYs.map((y, k) => {
+                                const da = (dapAnParts[k] || '').toUpperCase();
+                                const isD = da === 'Đ' || da === 'D';
+                                return (
+                                  <div key={k} className={`flex items-start gap-3 px-3 py-2 rounded-xl border ${hienThiDapAn ? (isD ? 'bg-emerald-50 border-emerald-300' : 'bg-rose-50 border-rose-200') : 'bg-slate-50 border-slate-200'}`}>
+                                    <span className={`font-black text-sm flex-shrink-0 w-5 ${hienThiDapAn ? (isD ? 'text-emerald-700' : 'text-rose-500') : 'text-amber-600'}`}>{labelMap[k]})</span>
+                                    <p className={`text-sm leading-relaxed flex-1 ${hienThiDapAn ? (isD ? 'text-emerald-800' : 'text-slate-600') : 'text-slate-800'}`}>{y}</p>
+                                    {hienThiDapAn && (
+                                      <span className={`flex-shrink-0 text-xs font-black px-2 py-0.5 rounded-lg ${isD ? 'bg-emerald-600 text-white' : 'bg-rose-500 text-white'}`}>
+                                        {isD ? 'Đúng' : 'Sai'}
+                                      </span>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                            <p className="text-[10px] text-slate-400 mt-2 italic">1 ý đúng: 0,1đ · 2 ý: 0,25đ · 3 ý: 0,5đ · 4 ý: 1,0đ</p>
+                          </>
                         )}
                       </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
-                      {/* Ô trả lời + Đáp án */}
-                      <div className="px-4 pb-4 flex items-center gap-3">
-                        <div className="flex-1 border-2 border-dashed border-rose-200 rounded-xl px-3 py-2 bg-white min-h-[36px] flex items-center">
-                          {hienThiDapAn ? (
-                            <span className="text-sm font-black text-rose-700">{q.dapAn}</span>
-                          ) : (
-                            <span className="text-xs text-slate-300 italic">Kết quả: ...</span>
-                          )}
+          {/* ═══ PHẦN III: TRẢ LỜI NGẮN ════════════════════════════════════ */}
+          {tlnQuestions.length > 0 && (
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="bg-rose-600 px-8 py-4 flex items-center justify-between">
+                <div>
+                  <h3 className="text-white font-black text-base">PHẦN III. TRẢ LỜI NGẮN</h3>
+                  <p className="text-rose-100 text-xs mt-0.5">Câu 1 – {tlnQuestions.length} · Thí sinh ghi kết quả vào ô trả lời · Mỗi câu đúng 0,5 điểm</p>
+                </div>
+                <span className="bg-white/20 text-white font-black text-xl px-4 py-2 rounded-2xl">{tlnQuestions.length}</span>
+              </div>
+
+              <div className="p-6 space-y-4">
+                {tlnQuestions.map((q, i) => {
+                  const cauSo = i + 1; // Câu 1–6 trong phần này
+                  const mdStyle: Record<string, string> = {
+                    'Thông hiểu': 'TH',
+                    'Vận dụng': 'VD',
+                    'Vận dụng cao': 'VDC',
+                    'Nhận biết': 'NB',
+                  };
+                  const noiDungClean = q.noiDungCauHoi.replace(/^\[.*?\]\s*–?\s*/, '').trim();
+
+                  return (
+                    <div key={q.id} className="border border-slate-200 rounded-2xl overflow-hidden">
+                      {/* Mini toolbar */}
+                      <div className="flex items-center justify-between px-4 py-1.5 bg-slate-50 border-b border-slate-100">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[9px] font-black text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded">{mdStyle[q.mucDo] || q.mucDo}</span>
+                          <span className="text-[10px] text-slate-400 italic">{q.noiDung} · Câu {16 + cauSo} (tổng)</span>
                         </div>
-                        <div className="text-right flex-shrink-0">
-                          <p className="text-[10px] text-slate-400">Điểm</p>
-                          <p className="text-base font-black text-rose-600">0,5</p>
+                        <div className="flex gap-1">
+                          {editingId === q.id
+                            ? <button onClick={() => setEditingId(null)} className="px-2 py-1 bg-slate-200 rounded-lg text-[9px] font-bold">✓ Xong</button>
+                            : <button onClick={() => setEditingId(q.id)} className="px-2 py-1 bg-rose-100 text-rose-700 rounded-lg text-[9px] font-bold hover:bg-rose-200 transition">✏ Sửa</button>
+                          }
                         </div>
+                      </div>
+
+                      <div className="px-5 py-3">
+                        {editingId === q.id ? (
+                          <textarea
+                            className="w-full p-3 border-2 border-rose-300 rounded-xl text-sm font-mono bg-white outline-none resize-none min-h-[80px]"
+                            value={q.noiDungCauHoi}
+                            onChange={e => handleUpdateCauHoi(q.id, 'noiDungCauHoi', e.target.value)}
+                          />
+                        ) : (
+                          <>
+                            {/* Câu số + đề bài */}
+                            <p className="text-sm font-bold text-slate-900 mb-2 leading-relaxed">
+                              <span className="text-rose-700 font-black mr-1">Câu {cauSo}.</span>
+                              {noiDungClean}
+                            </p>
+                            {/* Ô trả lời */}
+                            <div className="flex items-center gap-3 mt-2">
+                              <span className="text-xs text-slate-500 font-bold flex-shrink-0">Kết quả:</span>
+                              <div className={`flex-1 border-b-2 ${hienThiDapAn ? 'border-rose-400' : 'border-slate-300'} pb-1 min-h-[28px] flex items-end`}>
+                                {hienThiDapAn ? (
+                                  <span className="text-sm font-black text-rose-700">{q.dapAn}</span>
+                                ) : (
+                                  <span className="text-slate-200 text-xs italic">...</span>
+                                )}
+                              </div>
+                              <span className="text-[10px] text-slate-400 flex-shrink-0">0,5đ</span>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
                   );
