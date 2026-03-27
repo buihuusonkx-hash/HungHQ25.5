@@ -1670,64 +1670,38 @@ function TabTaoDeTuDong({ data, countQuestions }: { data: any[], countQuestions:
               <div className="p-6 space-y-4">
                 {nlcQuestions.map((q, i) => {
                   const cauSo = i + 1;
-                  // Tách đề + 4 phương án A B C D
                   const raw = q.noiDungCauHoi.replace(/^\[.*?\]\s*–?\s*/, '').trim();
-                  const optRegex = /\n?([A-D])\.\s*/g;
                   const splitParts = raw.split(/\n?[A-D]\.\s*/);
                   const deDan = splitParts[0].trim();
-                  // Lấy label A B C D và nội dung mỗi option
                   const optMatches = [...raw.matchAll(/([A-D])\.\s*([^\n]*)/g)];
                   const options = optMatches.length > 0
                     ? optMatches.map(m => ({ label: m[1], text: m[2].trim() }))
                     : ['A', 'B', 'C', 'D'].map((lbl, k) => ({ label: lbl, text: splitParts[k + 1]?.trim() || `Phương án ${lbl}` }));
 
-                  const keyword = encodeURIComponent(q.noiDung || '');
-
                   return (
                     <div key={q.id} className="border border-slate-200 rounded-2xl overflow-hidden">
-                      {/* Mini toolbar */}
-                      <div className="flex items-center justify-between px-4 py-1.5 bg-slate-50 border-b border-slate-100">
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-black text-slate-400 uppercase">
-                            {q.mucDo === 'Nhận biết' ? 'NB' : q.mucDo === 'Thông hiểu' ? 'TH' : q.mucDo === 'Vận dụng cao' ? 'VDC' : 'VD'}
-                          </span>
-                          <span className="text-[10px] text-slate-400 italic">{q.noiDung}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <div className="relative group">
-                            <button className="px-2 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-[9px] font-bold hover:bg-indigo-100 transition">🔍 Tìm nguồn</button>
-                            <div className="absolute right-0 top-full mt-1 w-44 bg-white border border-slate-200 rounded-xl shadow-xl z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
-                              <div className="p-1.5 flex flex-col gap-0.5">
-                                <a href={`https://thuvienhoclieu.com/?s=${keyword}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-blue-50 text-xs font-bold text-blue-700">📚 Thư viện Học liệu ↗</a>
-                                <a href={`https://toanmath.com/?s=${keyword}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-emerald-50 text-xs font-bold text-emerald-700">📐 Toanmath.com ↗</a>
-                                <a href={`https://www.google.com/search?q=${encodeURIComponent((q.noiDung||'')+' trắc nghiệm toán 12')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-slate-50 text-xs text-slate-600 font-bold">🌐 Google ↗</a>
-                                <button onClick={() => { setKeywordSearch(q.noiDung||''); setShowNguon(true); document.getElementById('nguon-tai-lieu-panel')?.scrollIntoView({behavior:'smooth',block:'start'}); }} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-violet-50 text-xs font-bold text-violet-700 text-left w-full">📂 Nhập file máy tính</button>
-                              </div>
-                            </div>
-                          </div>
-                          {editingId === q.id
-                            ? <button onClick={() => setEditingId(null)} className="px-2 py-1 bg-slate-200 rounded-lg text-[9px] font-bold">✓ Xong</button>
-                            : <button onClick={() => setEditingId(q.id)} className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded-lg text-[9px] font-bold hover:bg-emerald-200 transition">✏ Sửa</button>
-                          }
-                        </div>
+                      <div className="flex items-center px-4 py-1.5 bg-slate-50 border-b border-slate-100 gap-2">
+                        <span className="text-[10px] font-black text-slate-400 uppercase">
+                          {q.mucDo === 'Nhận biết' ? 'NB' : q.mucDo === 'Thông hiểu' ? 'TH' : q.mucDo === 'Vận dụng cao' ? 'VDC' : 'VD'}
+                        </span>
+                        <span className="text-[10px] text-slate-400 italic">{q.noiDung}</span>
                       </div>
-
-                      {/* Nội dung câu hỏi */}
+                      {/* Click vào nội dung để sửa trực tiếp */}
                       <div className="px-5 py-3">
                         {editingId === q.id ? (
                           <textarea
+                            autoFocus
                             className="w-full p-3 border-2 border-emerald-300 rounded-xl text-sm font-mono bg-white outline-none focus:border-emerald-500 resize-none min-h-[100px]"
                             value={q.noiDungCauHoi}
                             onChange={e => handleUpdateCauHoi(q.id, 'noiDungCauHoi', e.target.value)}
+                            onBlur={() => setEditingId(null)}
                           />
                         ) : (
-                          <>
-                            {/* Câu số + đề dẫn */}
+                          <div onClick={() => setEditingId(q.id)} className="cursor-pointer hover:bg-emerald-50/50 rounded-xl p-1 -m-1 transition">
                             <p className="text-sm font-bold text-slate-900 mb-2 leading-relaxed">
                               <span className="text-emerald-700 font-black mr-1">Câu {cauSo}.</span>
                               {deDan}
                             </p>
-                            {/* 4 phương án A B C D */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
                               {options.map(opt => {
                                 const isCorrect = hienThiDapAn && q.dapAn.trim().toUpperCase() === opt.label;
@@ -1740,7 +1714,7 @@ function TabTaoDeTuDong({ data, countQuestions }: { data: any[], countQuestions:
                                 );
                               })}
                             </div>
-                          </>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -1763,7 +1737,7 @@ function TabTaoDeTuDong({ data, countQuestions }: { data: any[], countQuestions:
 
               <div className="p-6 space-y-5">
                 {dsQuestions.map((q, i) => {
-                  const cauSo = i + 1; // Câu 1–4 trong phần này
+                  const cauSo = i + 1;
                   const labelMap = ['a', 'b', 'c', 'd'];
                   const mucDoYMap = ['Nhận biết', 'Thông hiểu', 'Thông hiểu', 'Vận dụng'];
                   const raw = q.noiDungCauHoi;
@@ -1778,32 +1752,25 @@ function TabTaoDeTuDong({ data, countQuestions }: { data: any[], countQuestions:
 
                   return (
                     <div key={q.id} className="border-2 border-amber-200 rounded-2xl overflow-hidden">
-                      {/* Mini toolbar */}
-                      <div className="flex items-center justify-between px-4 py-1.5 bg-amber-50 border-b border-amber-100">
+                      <div className="flex items-center px-4 py-1.5 bg-amber-50 border-b border-amber-100">
                         <span className="text-[10px] text-slate-400 italic">{q.noiDung} · Câu {12 + cauSo} (tổng)</span>
-                        <div className="flex gap-1">
-                          {editingId === q.id
-                            ? <button onClick={() => setEditingId(null)} className="px-2 py-1 bg-slate-200 rounded-lg text-[9px] font-bold">✓ Xong</button>
-                            : <button onClick={() => setEditingId(q.id)} className="px-2 py-1 bg-amber-100 text-amber-700 rounded-lg text-[9px] font-bold hover:bg-amber-200 transition">✏ Sửa</button>
-                          }
-                        </div>
                       </div>
-
+                      {/* Click vào nội dung để sửa trực tiếp */}
                       <div className="px-5 py-4">
                         {editingId === q.id ? (
                           <textarea
+                            autoFocus
                             className="w-full p-3 border-2 border-amber-300 rounded-xl text-sm font-mono bg-white outline-none resize-none min-h-[120px]"
                             value={q.noiDungCauHoi}
                             onChange={e => handleUpdateCauHoi(q.id, 'noiDungCauHoi', e.target.value)}
+                            onBlur={() => setEditingId(null)}
                           />
                         ) : (
-                          <>
-                            {/* Câu số + đề dẫn */}
+                          <div onClick={() => setEditingId(q.id)} className="cursor-pointer hover:bg-amber-50/50 rounded-xl p-1 -m-1 transition">
                             <p className="text-sm font-bold text-slate-900 mb-3 leading-relaxed">
                               <span className="text-amber-700 font-black mr-1">Câu {cauSo}.</span>
                               {danDe}
                             </p>
-                            {/* 4 mệnh đề a b c d */}
                             <div className="space-y-2">
                               {finalYs.map((y, k) => {
                                 const da = (dapAnParts[k] || '').toUpperCase();
@@ -1822,7 +1789,7 @@ function TabTaoDeTuDong({ data, countQuestions }: { data: any[], countQuestions:
                               })}
                             </div>
                             <p className="text-[10px] text-slate-400 mt-2 italic">1 ý đúng: 0,1đ · 2 ý: 0,25đ · 3 ý: 0,5đ · 4 ý: 1,0đ</p>
-                          </>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -1845,46 +1812,34 @@ function TabTaoDeTuDong({ data, countQuestions }: { data: any[], countQuestions:
 
               <div className="p-6 space-y-4">
                 {tlnQuestions.map((q, i) => {
-                  const cauSo = i + 1; // Câu 1–6 trong phần này
+                  const cauSo = i + 1;
                   const mdStyle: Record<string, string> = {
-                    'Thông hiểu': 'TH',
-                    'Vận dụng': 'VD',
-                    'Vận dụng cao': 'VDC',
-                    'Nhận biết': 'NB',
+                    'Thông hiểu': 'TH', 'Vận dụng': 'VD', 'Vận dụng cao': 'VDC', 'Nhận biết': 'NB',
                   };
                   const noiDungClean = q.noiDungCauHoi.replace(/^\[.*?\]\s*–?\s*/, '').trim();
 
                   return (
                     <div key={q.id} className="border border-slate-200 rounded-2xl overflow-hidden">
-                      {/* Mini toolbar */}
-                      <div className="flex items-center justify-between px-4 py-1.5 bg-slate-50 border-b border-slate-100">
-                        <div className="flex items-center gap-2">
-                          <span className="text-[9px] font-black text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded">{mdStyle[q.mucDo] || q.mucDo}</span>
-                          <span className="text-[10px] text-slate-400 italic">{q.noiDung} · Câu {16 + cauSo} (tổng)</span>
-                        </div>
-                        <div className="flex gap-1">
-                          {editingId === q.id
-                            ? <button onClick={() => setEditingId(null)} className="px-2 py-1 bg-slate-200 rounded-lg text-[9px] font-bold">✓ Xong</button>
-                            : <button onClick={() => setEditingId(q.id)} className="px-2 py-1 bg-rose-100 text-rose-700 rounded-lg text-[9px] font-bold hover:bg-rose-200 transition">✏ Sửa</button>
-                          }
-                        </div>
+                      <div className="flex items-center px-4 py-1.5 bg-slate-50 border-b border-slate-100 gap-2">
+                        <span className="text-[9px] font-black text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded">{mdStyle[q.mucDo] || q.mucDo}</span>
+                        <span className="text-[10px] text-slate-400 italic">{q.noiDung} · Câu {16 + cauSo} (tổng)</span>
                       </div>
-
+                      {/* Click vào nội dung để sửa trực tiếp */}
                       <div className="px-5 py-3">
                         {editingId === q.id ? (
                           <textarea
+                            autoFocus
                             className="w-full p-3 border-2 border-rose-300 rounded-xl text-sm font-mono bg-white outline-none resize-none min-h-[80px]"
                             value={q.noiDungCauHoi}
                             onChange={e => handleUpdateCauHoi(q.id, 'noiDungCauHoi', e.target.value)}
+                            onBlur={() => setEditingId(null)}
                           />
                         ) : (
-                          <>
-                            {/* Câu số + đề bài */}
+                          <div onClick={() => setEditingId(q.id)} className="cursor-pointer hover:bg-rose-50/50 rounded-xl p-1 -m-1 transition">
                             <p className="text-sm font-bold text-slate-900 mb-2 leading-relaxed">
                               <span className="text-rose-700 font-black mr-1">Câu {cauSo}.</span>
                               {noiDungClean}
                             </p>
-                            {/* Ô trả lời */}
                             <div className="flex items-center gap-3 mt-2">
                               <span className="text-xs text-slate-500 font-bold flex-shrink-0">Kết quả:</span>
                               <div className={`flex-1 border-b-2 ${hienThiDapAn ? 'border-rose-400' : 'border-slate-300'} pb-1 min-h-[28px] flex items-end`}>
@@ -1896,7 +1851,7 @@ function TabTaoDeTuDong({ data, countQuestions }: { data: any[], countQuestions:
                               </div>
                               <span className="text-[10px] text-slate-400 flex-shrink-0">0,5đ</span>
                             </div>
-                          </>
+                          </div>
                         )}
                       </div>
                     </div>
