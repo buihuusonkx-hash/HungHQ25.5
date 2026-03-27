@@ -1656,17 +1656,6 @@ function TabTaoDeTuDong({ data, countQuestions }: { data: any[], countQuestions:
             )}
           </div>
 
-          {/* PH\u1ea6N I */}
-          {nlcQuestions.length > 0 && (
-
-            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="bg-emerald-600 px-8 py-5 flex items-center justify-between">
-                <div>
-                  <h3 className="text-white font-black text-lg">PHẦN I. TRẮC NGHIỆM NHIỀU PHƯƠNG ÁN</h3>
-                  <p className="text-emerald-100 text-xs mt-0.5">Mỗi câu trả lời đúng được 0,25 điểm · Chọn một phương án đúng nhất · Câu 1–12</p>
-                </div>
-                <span className="bg-white/20 text-white font-black text-2xl px-4 py-2 rounded-2xl">{nlcQuestions.length}</span>
-              </div>
           {/* ═══ PHẦN I: TRẮC NGHIỆM NHIỀU PHƯƠNG ÁN ═══════════════════ */}
           {nlcQuestions.length > 0 && (
             <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
