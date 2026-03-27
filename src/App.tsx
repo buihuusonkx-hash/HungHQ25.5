@@ -6,6 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { PenSquare, FileText, Download, Plus, Trash2, ChevronRight, Sparkles, RefreshCw, CheckCircle, AlertCircle, BookOpen } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { QUESTION_BANK, type QBankEntry } from './questionBank';
 
 // --- CƠ SỞ DỮ LIỆU CHUẨN CT 2018 (SÁCH CÁNH DIỀU) ---
 const curriculumData: Record<string, Record<string, { nhanBiet: string; thongHieu: string; vanDung: string }>> = {
@@ -210,15 +211,12 @@ export default function App() {
         nd.mucDos[0].qs.ds = (cur ? cur + ', ' : '') + `Cau ${ds++}`;
       }
 
-      // TLN: NB (2/6)=>mucDos[0], TH (2/6)=>mucDos[1], VD+VDC (2/6)=>mucDos[2]
+      // TLN (chuan 2025): TH (cau 17,18) => mucDos[1]; VD+VDC (cau 19-22) => mucDos[2]
+      // Khong co NB trong TLN
       const c3 = alloc3[i];
-      const c3NB = Math.round(c3 * 2 / 6);
-      const c3TH = Math.round(c3 * 2 / 6);
-      const c3VD = c3 - c3NB - c3TH;
-      for (let k = 0; k < c3NB; k++) {
-        const cur = nd.mucDos[0].qs.tln;
-        nd.mucDos[0].qs.tln = (cur ? cur + ', ' : '') + `Cau ${tln++}`;
-      }
+      const c3TH  = Math.round(c3 * 2 / 6); // ~2 cau TH
+      const c3VD  = c3 - c3TH;               // phan con lai = VD+VDC (4 cau)
+      // mucDos[0].qs.tln = '' (khong co NB)
       for (let k = 0; k < c3TH; k++) {
         const cur = nd.mucDos[1].qs.tln;
         nd.mucDos[1].qs.tln = (cur ? cur + ', ' : '') + `Cau ${tln++}`;
@@ -884,34 +882,39 @@ export default function App() {
                       <th className="border border-slate-800 p-4 w-48 text-[10px] uppercase font-black" rowSpan={3}>Nội dung kiến thức</th>
                       <th className="border border-slate-800 p-4 w-32 text-[10px] uppercase font-black" rowSpan={3}>Mức độ</th>
                       <th className="border border-slate-800 p-4 text-[10px] uppercase font-black" rowSpan={3}>Yêu cầu cần đạt</th>
-                      <th className="border border-slate-800 p-2 text-[10px] uppercase font-black text-center" colSpan={9}>Số câu hỏi theo mức độ nhận thức</th>
+                      <th className="border border-slate-800 p-2 text-[10px] uppercase font-black text-center" colSpan={8}>Số câu hỏi theo mức độ nhận thức</th>
                     </tr>
                     <tr>
                       <th className="border border-slate-700 p-2 text-[9px] uppercase font-bold text-center" colSpan={2} style={{background:'#065f46',color:'#fff'}}>TNPA (C1–C12)</th>
-                      <th className="border border-slate-700 p-2 text-[9px] uppercase font-bold text-center" colSpan={3} style={{background:'#92400e',color:'#fff'}}>Đúng/Sai (C13–C16)</th>
-                      <th className="border border-slate-700 p-2 text-[9px] uppercase font-bold text-center" colSpan={4} style={{background:'#7f1d1d',color:'#fff'}}>Trả lời ngắn (C17–C22)</th>
+                      <th className="border border-slate-700 p-2 text-[9px] uppercase font-bold text-center" colSpan={3} style={{background:'#92400e',color:'#fff'}}>Đúng/Sai · 16 ý (C13–C16)</th>
+                      <th className="border border-slate-700 p-2 text-[9px] uppercase font-bold text-center" colSpan={3} style={{background:'#7f1d1d',color:'#fff'}}>Trả lời ngắn (C17–C22)</th>
                     </tr>
                     <tr className="bg-slate-100 text-slate-600">
                       <th className="border border-slate-200 p-1.5 w-14 text-[8px] font-black" style={{background:'#d1fae5',color:'#065f46'}}>NB<br/>(Biết)</th>
                       <th className="border border-slate-200 p-1.5 w-14 text-[8px] font-black" style={{background:'#d1fae5',color:'#065f46'}}>TH<br/>(Hiểu)</th>
-                      <th className="border border-slate-200 p-1.5 w-14 text-[8px] font-black" style={{background:'#fef3c7',color:'#92400e'}}>NB<br/>(4ý-a)</th>
-                      <th className="border border-slate-200 p-1.5 w-14 text-[8px] font-black" style={{background:'#fef3c7',color:'#92400e'}}>TH<br/>(8ý-bc)</th>
-                      <th className="border border-slate-200 p-1.5 w-14 text-[8px] font-black" style={{background:'#fef3c7',color:'#92400e'}}>VD<br/>(4ý-d)</th>
-                      <th className="border border-slate-200 p-1.5 w-14 text-[8px] font-black" style={{background:'#ffe4e6',color:'#7f1d1d'}}>NB<br/>(C17,18)</th>
-                      <th className="border border-slate-200 p-1.5 w-14 text-[8px] font-black" style={{background:'#ffe4e6',color:'#7f1d1d'}}>TH<br/>(C19,20)</th>
-                      <th className="border border-slate-200 p-1.5 w-14 text-[8px] font-black" style={{background:'#ffe4e6',color:'#7f1d1d'}}>VD<br/>(C21)</th>
-                      <th className="border border-slate-200 p-1.5 w-14 text-[8px] font-black" style={{background:'#ffe4e6',color:'#7f1d1d'}}>VDC<br/>(C22)</th>
+                      <th className="border border-slate-200 p-1.5 w-14 text-[8px] font-black" style={{background:'#fef3c7',color:'#92400e'}}>NB<br/>4ý(a)</th>
+                      <th className="border border-slate-200 p-1.5 w-14 text-[8px] font-black" style={{background:'#fef3c7',color:'#92400e'}}>TH<br/>8ý(bc)</th>
+                      <th className="border border-slate-200 p-1.5 w-14 text-[8px] font-black" style={{background:'#fef3c7',color:'#92400e'}}>VD<br/>4ý(d)</th>
+                      <th className="border border-slate-200 p-1.5 w-14 text-[8px] font-black" style={{background:'#ffe4e6',color:'#7f1d1d'}}>TH<br/>C17,18</th>
+                      <th className="border border-slate-200 p-1.5 w-14 text-[8px] font-black" style={{background:'#ffe4e6',color:'#7f1d1d'}}>VD<br/>C19,20</th>
+                      <th className="border border-slate-200 p-1.5 w-14 text-[8px] font-black" style={{background:'#ffe4e6',color:'#7f1d1d'}}>VDC<br/>C21,22</th>
                     </tr>
                   </thead>
                   <tbody className="text-slate-700">
                     {data.map((chuong, cIdx) => (
                       chuong.tenChuong && chuong.noiDungs.map((nd: any, nIdx: number) => (
                         nd.tenNoiDung && nd.mucDos.map((md: any, mIdx: number) => {
-                          // Split VD/VDC from mucDos[2].qs.tln for TLN
-                          const tlnVDRaw = mIdx === 2 ? (md.qs.tln || '') : '';
-                          // Count for display
-                          const tlnVDCount = tlnVDRaw ? Math.ceil(tlnVDRaw.split(/[,;\s]+/).filter((s:string) => s && s.match(/\d/)).length / 2) : 0;
-                          const tlnVDCCount = tlnVDRaw ? Math.floor(tlnVDRaw.split(/[,;\s]+/).filter((s:string) => s && s.match(/\d/)).length / 2) : 0;
+                          // TLN mIdx2: split VD(ceil) / VDC(floor)
+                          const tlnRaw2 = mIdx === 2 ? (md.qs.tln || '') : '';
+                          const tlnTokens2 = tlnRaw2.split(/[,;\s]+/).filter((s:string) => s && s.match(/\d/));
+                          const tlnVDCount  = Math.ceil(tlnTokens2.length / 2);
+                          const tlnVDCCount = Math.floor(tlnTokens2.length / 2);
+                          // TLN mIdx1: TH câu (câu 17,18)
+                          const tlnTH = mIdx === 1 ? (md.qs.tln || '') : '';
+                          // Label từng câu TLN
+                          const labelTH  = tlnTH  ? tlnTH.split(/[,;\s]+/).filter((s:string)=>s&&s.match(/\d/)).map((s:string)=>`C${s.replace(/\D/g,'')}`).join(' ') : '';
+                          const labelVD  = tlnVDCount  > 0 ? tlnTokens2.slice(0,tlnVDCount).map((s:string)=>`C${s.replace(/\D/g,'')}`).join(' ') : '';
+                          const labelVDC = tlnVDCCount > 0 ? tlnTokens2.slice(tlnVDCount).map((s:string)=>`C${s.replace(/\D/g,'')}`).join(' ') : '';
                           return (
                             <tr key={`row-${cIdx}-${nIdx}-${mIdx}`} className="hover:bg-indigo-50/30 transition-colors group">
                               {nIdx === 0 && mIdx === 0 && (
@@ -929,18 +932,23 @@ export default function App() {
                               <td className="border border-slate-200 p-3 whitespace-pre-line text-[11px] leading-relaxed text-justify text-slate-600">
                                 {md.yeuCau || '---'}
                               </td>
-                              {/* TNPA: NB=mIdx0, TH=mIdx1 */}
-                              <td className="border border-slate-200 p-2 text-center font-bold text-emerald-800" style={{background:'#f0fdf4'}}>{mIdx === 0 ? (md.qs.nlc || '') : ''}</td>
-                              <td className="border border-slate-200 p-2 text-center font-bold text-emerald-800" style={{background:'#f0fdf4'}}>{mIdx === 1 ? (md.qs.nlc || '') : ''}</td>
-                              {/* Đúng/Sai: NB=mIdx0, TH=mIdx1, VD=mIdx2 */}
-                              <td className="border border-slate-200 p-2 text-center font-bold text-amber-800" style={{background:'#fffbeb'}}>{mIdx === 0 ? (md.qs.ds || '') : ''}</td>
-                              <td className="border border-slate-200 p-2 text-center font-bold text-amber-800" style={{background:'#fffbeb'}}>{mIdx === 1 ? (md.qs.ds || '') : ''}</td>
-                              <td className="border border-slate-200 p-2 text-center font-bold text-amber-800" style={{background:'#fffbeb'}}>{mIdx === 2 ? (md.qs.ds || '') : ''}</td>
-                              {/* TLN: NB=mIdx0, TH=mIdx1, VD=ceil(mIdx2/2), VDC=floor(mIdx2/2) */}
-                              <td className="border border-slate-200 p-2 text-center font-bold text-rose-800" style={{background:'#fff1f2'}}>{mIdx === 0 ? (md.qs.tln || '') : ''}</td>
-                              <td className="border border-slate-200 p-2 text-center font-bold text-rose-800" style={{background:'#fff1f2'}}>{mIdx === 1 ? (md.qs.tln || '') : ''}</td>
-                              <td className="border border-slate-200 p-2 text-center font-bold text-rose-800" style={{background:'#fff1f2'}}>{mIdx === 2 ? (tlnVDCount || '') : ''}</td>
-                              <td className="border border-slate-200 p-2 text-center font-bold text-rose-800" style={{background:'#fff1f2'}}>{mIdx === 2 ? (tlnVDCCount || '') : ''}</td>
+                              {/* TNPA NB=mIdx0, TH=mIdx1 */}
+                              <td className="border border-slate-200 p-2 text-center font-bold text-emerald-800 text-[10px]" style={{background:'#f0fdf4'}}>{mIdx === 0 ? (md.qs.nlc || '') : ''}</td>
+                              <td className="border border-slate-200 p-2 text-center font-bold text-emerald-800 text-[10px]" style={{background:'#f0fdf4'}}>{mIdx === 1 ? (md.qs.nlc || '') : ''}</td>
+                              {/* DS: 4 câu 13-16, mỗi câu 4 ý: a=NB, b,c=TH, d=VD */}
+                              <td className="border border-slate-200 p-2 text-center font-bold text-amber-800 text-[10px]" style={{background:'#fffbeb'}}>{mIdx === 0 ? (md.qs.ds || '') : ''}</td>
+                              <td className="border border-slate-200 p-2 text-center font-bold text-amber-800 text-[10px]" style={{background:'#fffbeb'}}>{mIdx === 1 ? (md.qs.ds || '') : ''}</td>
+                              <td className="border border-slate-200 p-2 text-center font-bold text-amber-800 text-[10px]" style={{background:'#fffbeb'}}>{mIdx === 2 ? (md.qs.ds || '') : ''}</td>
+                              {/* TLN: TH=mIdx1(câu17,18), VD=mIdx2 ceil, VDC=mIdx2 floor */}
+                              <td className="border border-slate-200 p-2 text-center font-bold text-rose-800 text-[10px]" style={{background:'#fff1f2'}}>
+                                {mIdx === 1 && labelTH ? <span title={md.qs.tln}>{labelTH}</span> : ''}
+                              </td>
+                              <td className="border border-slate-200 p-2 text-center font-bold text-rose-800 text-[10px]" style={{background:'#fff1f2'}}>
+                                {mIdx === 2 && labelVD ? <span title={tlnTokens2.slice(0,tlnVDCount).join(', ')}>{labelVD}</span> : ''}
+                              </td>
+                              <td className="border border-slate-200 p-2 text-center font-bold text-rose-800 text-[10px]" style={{background:'#fff1f2'}}>
+                                {mIdx === 2 && labelVDC ? <span title={tlnTokens2.slice(tlnVDCount).join(', ')}>{labelVDC}</span> : ''}
+                              </td>
                             </tr>
                           );
                         })
@@ -1010,69 +1018,7 @@ function allocateByTiet(quota: number, items: Array<{ soTiet: number }>): number
   return floor;
 }
 
-type QBankEntry = { mucDo: 'NB'|'TH'|'VD'|'VDC'; phan: 'nlc'|'ds'|'tln'; noiDung: string; dapAn: string; };
 
-const QUESTION_BANK: Record<string, QBankEntry[]> = {
-  'default': [
-    { mucDo:'NB', phan:'nlc', noiDung:'[NHẬN BIẾT] Hàm số nào sau đây là nguyên hàm của hàm số f(x) = 2x?\nA. F(x) = x² + 1\u2003B. F(x) = x² \u2013 3\u2003C. F(x) = 2x²\u2003D. F(x) = ½ x²', dapAn:'A' },
-    { mucDo:'NB', phan:'nlc', noiDung:'[NHẬN BIẾT] Đạo hàm của hàm số y = x³ \u2013 3x + 2 là\nA. y’ = 3x² \u2013 3\u2003B. y’ = 3x² + 3\u2003C. y’ = x² \u2013 3\u2003D. y’ = 3x²', dapAn:'A' },
-    { mucDo:'TH', phan:'nlc', noiDung:'[THÔNG HIỂU] Cho hàm số y = x³ \u2013 3x² + 2. Hàm số đạt cực đại tại x bằng:\nA. x = 0\u2003B. x = 2\u2003C. x = \u22121\u2003D. x = 1', dapAn:'A' },
-  ],
-  'nguyên hàm': [
-    { mucDo:'NB', phan:'nlc', noiDung:'[NHẬN BIẾT] Họ nguyên hàm của hàm số f(x) = 3x² \u2013 2x + 1 là:\nA. x³ \u2013 x² + x + C\u2003B. x³ + x² \u2013 x + C\u2003C. 6x \u2013 2 + C\u2003D. 3x³ \u2013 x² + C', dapAn:'A' },
-  ],
-  'tích phân': [
-    { mucDo:'NB', phan:'nlc', noiDung:'[NHẬN BIẾT] Tích phân ∫₀¹ (2x + 1) dx bằng mấy?\nA. 2\u2003B. 1\u2003C. 3\u2003D. 0', dapAn:'A' },
-  ],
-  /* ── NGUYÊN HÀM (bổ sung) ─────────────────────────────────────────── */
-  'nguyên hàm nâng cao': [
-    { mucDo:'TH',  phan:'tln', noiDung:"[THÔNG HIỂU – TLN] Tính ∫₀²(x²+1)dx.", dapAn:'14/3' },
-    { mucDo:'TH',  phan:'tln', noiDung:"[THÔNG HIỂU – TLN] F(x) là nguyên hàm của sin x, F(0)=1. Tính F(π)−F(0).", dapAn:'2' },
-    { mucDo:'VD',  phan:'tln', noiDung:"[VẬN DỤNG – TLN] Tính ∫x·cos x dx (từng phần).", dapAn:'x·sin x + cos x + C' },
-    { mucDo:'VD',  phan:'tln', noiDung:"[VẬN DỤNG – TLN] Tìm F(x) nguyên hàm của x·eˣ, F(0)=0.", dapAn:'F(x)=(x−1)eˣ+1' },
-    { mucDo:'VDC', phan:'tln', noiDung:"[VẬN DỤNG CAO – TLN] Tính ∫₁ᵉ ln x dx.", dapAn:'1' },
-    { mucDo:'VDC', phan:'tln', noiDung:"[VẬN DỤNG CAO – TLN] Tính ∫₀^(π/2) sin²x dx.", dapAn:'π/4' },
-    { mucDo:'NB',  phan:'ds',  noiDung:"Về nguyên hàm, Đ/S:\na)[NB] ∫f(x)dx là duy nhất.\nb)[TH] F(x)+C là nguyên hàm.\nc)[TH] ∫kf(x)dx=k∫f(x)dx.\nd)[VD] ∫sin²x dx=−sin(2x)/4+x/2+C.", dapAn:'S Đ Đ Đ' },
-  ],
-
-  /* ── TÍCH PHÂN (bổ sung) ───────────────────────────────────────────── */
-  'tích phân nâng cao': [
-    { mucDo:'TH',  phan:'tln', noiDung:"[THÔNG HIỂU – TLN] Tính ∫₀^(π/2) cos x dx.", dapAn:'1' },
-    { mucDo:'TH',  phan:'tln', noiDung:"[THÔNG HIỂU – TLN] Tính ∫₁⁴ (1/√x) dx.", dapAn:'2' },
-    { mucDo:'VD',  phan:'tln', noiDung:"[VẬN DỤNG – TLN] Diện tích hình phẳng giới hạn y=x² và y=2x.", dapAn:'4/3' },
-    { mucDo:'VD',  phan:'tln', noiDung:"[VẬN DỤNG – TLN] Tính I=∫₀¹ x√(x²+1) dx (đặt t=x²+1).", dapAn:'(2√2−1)/3' },
-    { mucDo:'VDC', phan:'tln', noiDung:"[VẬN DỤNG CAO – TLN] Thể tích vật tròn xoay: y=√x, y=0, x=1 quay quanh Ox.", dapAn:'V=π/2' },
-    { mucDo:'VDC', phan:'tln', noiDung:"[VẬN DỤNG CAO – TLN] Tính ∫₀^(π/4) tan²x dx.", dapAn:'1−π/4' },
-    { mucDo:'NB',  phan:'ds',  noiDung:"∫₀²f(x)dx=3; ∫₀²g(x)dx=5. Đ/S:\na)[NB] ∫₀²[f+g]dx=8.\nb)[TH] ∫₀²2f dx=6.\nc)[TH] ∫₂⁰f dx=−3.\nd)[VD] ∫₀²fg dx=15.", dapAn:'Đ Đ Đ S' },
-  ],
-
-  /* ── XÁC SUẤT CÓ ĐIỀU KIỆN ─────────────────────────────────────────── */
-  'xác suất có điều kiện': [
-    { mucDo:'NB',  phan:'nlc', noiDung:"[NHẬN BIẾT] P(A|B)=?\nA. P(A∩B)/P(B)\u2003B. P(A)·P(B)\u2003C. P(A)+P(B)\u2003D. P(A∩B)/P(A)", dapAn:'A' },
-    { mucDo:'NB',  phan:'nlc', noiDung:"[NHẬN BIẾT] A độc lập B khi:\nA. P(A∩B)=P(A)·P(B)\u2003B. P(A|B)=P(A)+P(B)\u2003C. P(A∩B)=0\u2003D. P(A|B)=P(B)", dapAn:'A' },
-    { mucDo:'TH',  phan:'nlc', noiDung:"[THÔNG HIỂU] P(A)=0,5; P(B)=0,4; P(A∩B)=0,2. P(A|B)=?\nA. 0,5\u2003B. 0,4\u2003C. 0,8\u2003D. 0,2", dapAn:'A' },
-    { mucDo:'TH',  phan:'tln', noiDung:"[THÔNG HIỂU – TLN] P(A)=0,6; P(B)=0,5; P(A∩B)=0,3. Tính P(A|B) và P(B|A).", dapAn:'P(A|B)=0,6; P(B|A)=0,5' },
-    { mucDo:'TH',  phan:'tln', noiDung:"[THÔNG HIỂU – TLN] 3 đỏ 2 xanh, rút không hoàn lại. P(lần 2 đỏ | lần 1 đỏ)=?", dapAn:'1/2' },
-    { mucDo:'VD',  phan:'tln', noiDung:"[VẬN DỤNG – TLN] P(A)=0,4; P(B|A)=0,5; P(B|Ā)=0,2. Tính P(A|B) bằng Bayes.", dapAn:'P(B)=0,32; P(A|B)=0,625' },
-    { mucDo:'VD',  phan:'tln', noiDung:"[VẬN DỤNG – TLN] P(A)=0,4; P(B|A)=0,5; P(B|Ā)=0,2. Tính P(A∩B).", dapAn:'P(A∩B)=0,2' },
-    { mucDo:'VDC', phan:'tln', noiDung:"[VẬN DỤNG CAO – TLN] NM I: 60% SP, phế 2%; NM II: 40% SP, phế 3%. Thấy phế. P(từ NM II)=?", dapAn:'0,5' },
-    { mucDo:'VDC', phan:'tln', noiDung:"[VẬN DỤNG CAO – TLN] Dịch bệnh P=0,01; độ nhạy 95%, đặc hiệu 90%. P(bệnh|dương tính)=?", dapAn:'≈0,087 (Bayes)' },
-    { mucDo:'NB',  phan:'ds',  noiDung:"P(A)=0,4; P(B)=0,5; P(A∩B)=0,2. Đ/S:\na)[NB] P(A|B)=0,4.\nb)[TH] P(B|A)=0,5.\nc)[TH] A⊥B.\nd)[VD] P(A∪B)=0,7.", dapAn:'Đ Đ Đ Đ' },
-  ],
-
-  /* ── XÁC SUẤT TOÀN PHẦN ────────────────────────────────────────────── */
-  'xác suất toàn phần': [
-    { mucDo:'NB',  phan:'nlc', noiDung:"[NHẬN BIẾT] Công thức xác suất toàn phần:\nA. P(B)=ΣP(Aᵢ)·P(B|Aᵢ)\u2003B. P(B)=P(A)·P(B|A)\u2003C. P(A)+P(B)\u2003D. 1−P(B̄)", dapAn:'A' },
-    { mucDo:'TH',  phan:'nlc', noiDung:"[THÔNG HIỂU] Lô I: 70% tốt; Lô II: 80% tốt; P(I)=0,6; P(II)=0,4. P(tốt)=?\nA. 0,74\u2003B. 0,75\u2003C. 0,70\u2003D. 0,80", dapAn:'A' },
-    { mucDo:'TH',  phan:'tln', noiDung:"[THÔNG HIỂU – TLN] P(A₁)=0,3; P(A₂)=0,7; P(B|A₁)=0,4; P(B|A₂)=0,6. Tính P(B).", dapAn:'0,54' },
-    { mucDo:'TH',  phan:'tln', noiDung:"[THÔNG HIỂU – TLN] Hộp A: 3đỏ 2xanh; Hộp B: 1đỏ 4xanh. Chọn ngẫu nhiên 1 hộp, lấy 1 bi. P(đỏ)=?", dapAn:'2/5 = 0,4' },
-    { mucDo:'VD',  phan:'tln', noiDung:"[VẬN DỤNG – TLN] Ba máy I,II,III sx 50%,30%,20%. Phế 3%,2%,1%. Tính P(phế phẩm).", dapAn:'0,023' },
-    { mucDo:'VD',  phan:'tln', noiDung:"[VẬN DỤNG – TLN] P(B)=0,54. Tính P(A₁|B) bằng Bayes.", dapAn:'≈0,222' },
-    { mucDo:'VDC', phan:'tln', noiDung:"[VẬN DỤNG CAO – TLN] Từ bài ba máy, tính P(từ máy III | phế phẩm).", dapAn:'≈0,087' },
-    { mucDo:'VDC', phan:'tln', noiDung:"[VẬN DỤNG CAO – TLN] 2 nhà máy A,B theo tỉ lệ 3:2. Phế: A 2%, B 4%. P(từ B | phế phẩm)=?", dapAn:'≈0,571' },
-    { mucDo:'NB',  phan:'ds',  noiDung:"A₁⊔A₂=Ω; P(A₁)=P(A₂)=0,5; P(B|A₁)=0,3; P(B|A₂)=0,7. Đ/S:\na)[NB] P(B)=0,5.\nb)[TH] P(A₁|B)=0,3.\nc)[TH] P(Ā₁)=0,5.\nd)[VD] P(A₂|B)=0,7.", dapAn:'Đ Đ Đ Đ' },
-  ],
-};
 
 function getQuestionsFromBank(noiDung: string, phan: 'nlc'|'ds'|'tln', mucDo: string): QBankEntry | undefined {
   const noi = noiDung.toLowerCase();
@@ -1150,32 +1096,14 @@ function generateExamQuestions(data: any[], countQuestions: (s: string) => numbe
       }
 
       // ── PHẦN III: Trả lời ngắn (tln) – Câu 17→22 ──────────────────────
-      // Cấu trúc chuẩn 2025:
-      //   NB  (câu 17,18): đọc từ mucDos[0].qs.tln
-      //   TH  (câu 19,20): đọc từ mucDos[1].qs.tln
-      //   VD  (câu 21):    ceil(mucDos[2].qs.tln / 2)
-      //   VDC (câu 22):    floor(mucDos[2].qs.tln / 2)
-      const nTlnNB     = countQuestions(nd.mucDos[0]?.qs?.tln || '');
+      // Cấu trúc chuẩn 2025 (không có NB trong TLN):
+      //   TH  (câu 17,18): đọc từ mucDos[1].qs.tln
+      //   VD  (câu 19,20): ceil(mucDos[2].qs.tln / 2)
+      //   VDC (câu 21,22): floor(mucDos[2].qs.tln / 2)
       const nTlnTH     = countQuestions(nd.mucDos[1]?.qs?.tln || '');
       const nTlnVD_raw = countQuestions(nd.mucDos[2]?.qs?.tln || '');
       const nTlnVD     = Math.ceil(nTlnVD_raw / 2);
       const nTlnVDC    = Math.floor(nTlnVD_raw / 2);
-
-      // TLN – Nhận biết (câu 17, 18)
-      for (let k = 0; k < nTlnNB; k++) {
-        const bq = getQuestionsFromBank(nd.tenNoiDung, 'tln', 'Nhận biết');
-        tlnCount++;
-        result.push({
-          id: Date.now() + Math.random(),
-          phan: 'tln', soThuTu: tlnCount,
-          chuong: chuong.tenChuong,
-          noiDung: nd.tenNoiDung,
-          mucDo: 'Nhận biết',
-          yeuCau: nd.mucDos[0]?.yeuCau || '',
-          noiDungCauHoi: bq ? bq.noiDung : `[NHẬN BIẾT – TLN] ${nd.tenNoiDung}`,
-          dapAn: bq ? bq.dapAn : '...',
-        });
-      }
       // TLN – Thông hiểu (câu 19, 20)
       for (let k = 0; k < nTlnTH; k++) {
         const bq = getQuestionsFromBank(nd.tenNoiDung, 'tln', 'Thông hiểu');
