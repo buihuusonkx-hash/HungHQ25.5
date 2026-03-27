@@ -7,6 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { PenSquare, FileText, Download, Plus, Trash2, ChevronRight, Sparkles, RefreshCw, CheckCircle, AlertCircle, BookOpen } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { QUESTION_BANK, type QBankEntry } from './questionBank';
+import { useMathRender } from './MathText';
 
 // --- CƠ SỞ DỮ LIỆU CHUẨN CT 2018 (SÁCH CÁNH DIỀU) ---
 const curriculumData: Record<string, Record<string, { nhanBiet: string; thongHieu: string; vanDung: string }>> = {
@@ -1168,6 +1169,8 @@ function TabTaoDeTuDong({ data, countQuestions }: { data: any[], countQuestions:
   const [cauHois, setCauHois] = React.useState<CauHoi[]>([]);
   const [isGenerated, setIsGenerated] = React.useState(false);
   const [tenTruong, setTenTruong] = React.useState('TRƯỜNG THPT ...');
+  // KaTeX auto-render sau khi sinh đề
+  const mathRef = useMathRender([cauHois, isGenerated]);
   const [tenDe, setTenDe] = React.useState('ĐỀ KIỂM TRA MÔN TOÁN 12');
   const [thoiGian, setThoiGian] = React.useState('90');
   const [nguonTaiLieu, setNguonTaiLieu] = React.useState('thuvienhoclieu.com');
@@ -1366,6 +1369,7 @@ function TabTaoDeTuDong({ data, countQuestions }: { data: any[], countQuestions:
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
       className="space-y-6"
+      ref={mathRef as React.RefObject<HTMLDivElement>}
     >
       {/* ── PANEL NGUỒN TÀI LIỆU ─────────────────────────────────── */}
       <div id="nguon-tai-lieu-panel" className="bg-gradient-to-br from-indigo-900 to-slate-900 rounded-3xl border border-indigo-800 shadow-xl p-6 text-white">
